@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ConnectionIndicator } from "@/components/realtime/connection-indicator";
 import { currentMilestone } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { ContentSchema } from "@/types/cms";
@@ -58,8 +59,9 @@ export function Sidebar({ schemas, error }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="border-t border-border-subtle px-5 py-3">
-        <p className="text-[11px] leading-relaxed text-ink-muted">
+      <div className="space-y-1.5 border-t border-border-subtle px-4 py-3">
+        <ConnectionIndicator />
+        <p className="px-1 text-[11px] leading-relaxed text-ink-muted">
           Milestone {currentMilestone().id} — {currentMilestone().label}
         </p>
       </div>

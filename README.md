@@ -6,10 +6,11 @@ time, and the stored content is readable over a simple HTTP API.
 
 Built for the [Agile Monkeys Frontend Challenge 2026](https://frontend-challenge-2026.theagilemonkeys.com/).
 
-> **Status: milestone 3 (Read API).** Content types are manageable through the
-> UI, entries are edited through a form generated from the schema, and the
-> stored content is readable over HTTP at `/api/content`. Real-time sync and
-> the full schema-evolution flow land in milestones 4–5 — see
+> **Status: milestone 4 (Real-time).** Content types are manageable through the
+> UI, entries are edited through a form generated from the schema, the content
+> is readable over HTTP at `/api/content`, and every open client stays in sync
+> with concurrent edits surfaced rather than silently resolved. The full
+> schema-evolution flow lands in milestone 5 — see
 > [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md).
 
 ---
@@ -103,6 +104,7 @@ app/
   api/content/       # read API: discovery, collection, single entry
 components/
   layout/            # shell chrome
+  realtime/          # connection indicator
   fields/            # one renderer per field type — the registry
   entry/             # entry list, generated form, delete
   schema/            # schema builder UI
@@ -113,6 +115,7 @@ lib/
   health.ts          # health check logic
   actions/           # server actions (all writes)
   api/               # read-API data access, serialization, params, errors
+  realtime/          # subscription provider + pure sync policy
   schema/            # validation, diff engine, runtime Zod, display helpers
   migrations/        # analyze · preview · resolve  (milestone 5)
 scripts/seed.ts      # idempotent seed
@@ -146,6 +149,13 @@ Full reference — parameters, response shape, error codes and limits — in
 [`docs/API.md`](docs/API.md). Each content type's page in the panel also shows
 its live endpoint with copyable `curl` commands.
 
+## Real-time
+
+Open the panel in two windows. Editing an entry in one updates the other's
+list without a refresh, and editing the *same* entry in both surfaces a
+conflict instead of letting the second save overwrite the first. Connection
+state is always visible in the sidebar; click it to refetch on demand.
+
 ## Security note
 
 There is no authentication: the challenge scopes it out, so the `anon` role has
@@ -159,5 +169,6 @@ single-tenant demo posture, not a production one.
 - [`docs/MILESTONE_2_ENTRY_EDITOR.md`](docs/MILESTONE_2_ENTRY_EDITOR.md) — the generated entry editor
 - [`docs/API.md`](docs/API.md) — read API reference: endpoints, parameters, response shape, errors
 - [`docs/MILESTONE_3_READ_API.md`](docs/MILESTONE_3_READ_API.md) — what milestone 3 built, and how it was verified
+- [`docs/MILESTONE_4_REALTIME.md`](docs/MILESTONE_4_REALTIME.md) — real-time sync and concurrent-edit handling
 - [`docs/PRD.md`](docs/PRD.md) — scope, requirements, acceptance criteria
 - [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md) — architecture, data model, milestones, risks

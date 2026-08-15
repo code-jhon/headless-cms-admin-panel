@@ -12,6 +12,8 @@ import {
   forceUpdateEntry,
   updateEntry,
 } from "@/lib/actions/entries";
+import { useRealtimeEvents } from "@/lib/realtime/provider";
+import { classifyOpenEntryEvent, isSchemaChange } from "@/lib/realtime/sync-policy";
 import type { Entry, FieldValue, SchemaWithFields } from "@/types/cms";
 
 interface EntryFormProps {
@@ -22,12 +24,11 @@ interface EntryFormProps {
 }
 
 /**
- * The generated entry form (PRD B2, B3).
+ * The generated entry form (PRD B2, B3, C2, C3).
  *
  * There is no per-content-type markup here: it walks `schema.fields`, asks
  * the renderer registry for a component per type, and validates against a
- * Zod schema compiled from those same rows. A brand-new content type gets a
- * working editor with no code written.
+ * Zod schema compiled from those same rows.
  */
 export function EntryForm({ schema, entry, referenceOptions }: EntryFormProps) {
   const router = useRouter();
@@ -43,15 +44,51 @@ export function EntryForm({ schema, entry, referenceOptions }: EntryFormProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
 
+  /**
+   * The optimistic-concurrency token, frozen at the moment this form loaded.
+   *
+   * This must NOT follow the `entry` prop. Realtime calls `router.refresh()`,
+   * which re-renders this page with the *new* `updated_at` — so if the token
+   * tracked the prop, a colleague's save would silently become the baseline
+   * and the next save here would overwrite their work while reporting
+   * success. Freezing it is what keeps conflict detection honest once
+   * milestone 4 makes refreshes routine.
+   */
+  const [baselineUpdatedAt, setBaselineUpdatedAt] = useState(
+    entry?.updated_at ?? "",
+  );
+
+  /** Set when someone else changed this entry while it is open. */
+  const [remoteChange, setRemoteChange] = useState<
+    null | "changed-elsewhere" | "deleted"
+  >(null);
+  const [schemaChanged, setSchemaChanged] = useState(false);
+
   const isEditing = Boolean(entry);
   const dirty = useMemo(
     () => JSON.stringify(values) !== JSON.stringify(initial),
     [values, initial],
   );
 
+  useRealtimeEvents((event) => {
+    // The generated form is now built from a stale definition (PRD C2).
+    if (isSchemaChange(event) && event.new.schema_id === schema.id) {
+      setSchemaChanged(true);
+      return;
+    }
+
+    if (!entry) return;
+
+    const verdict = classifyOpenEntryEvent(event, {
+      entryId: entry.id,
+      knownUpdatedAt: baselineUpdatedAt,
+    });
+
+    if (verdict !== "ignore") setRemoteChange(verdict);
+  });
+
   function setValue(key: string, value: FieldValue) {
     setValues((prev) => ({ ...prev, [key]: value }));
-    // Clear a field's error as soon as it is touched; re-validated on submit.
     setErrors((prev) => {
       if (!prev[key]) return prev;
       const next = { ...prev };
@@ -84,7 +121,7 @@ export function EntryForm({ schema, entry, referenceOptions }: EntryFormProps) {
               schema.api_id,
               entry.id,
               values,
-              entry.updated_at,
+              baselineUpdatedAt,
             )
         : await createEntry(schema.id, schema.api_id, values);
 
@@ -95,6 +132,11 @@ export function EntryForm({ schema, entry, referenceOptions }: EntryFormProps) {
         return;
       }
 
+      // Our own write: adopt the new token so the realtime echo of this save
+      // is recognised as ours rather than reported as someone else's edit.
+      if (result.updatedAt) setBaselineUpdatedAt(result.updatedAt);
+      setRemoteChange(null);
+
       router.push(`/content/${schema.api_id}`);
       router.refresh();
     });
@@ -102,6 +144,50 @@ export function EntryForm({ schema, entry, referenceOptions }: EntryFormProps) {
 
   return (
     <form onSubmit={(e) => handleSubmit(e)} className="space-y-5">
+      {remoteChange === "deleted" ? (
+        <Notice tone="danger" title="This entry was deleted">
+          Someone deleted it while you had it open. Saving would recreate
+          nothing — copy anything you need, then go back to the list.
+        </Notice>
+      ) : remoteChange === "changed-elsewhere" ? (
+        <Notice tone="warn" title="Changed by someone else">
+          <p>
+            This entry was updated elsewhere while you had it open. Your
+            unsaved edits are still here.
+          </p>
+          <div className="mt-2 flex gap-2">
+            <Button type="button" size="sm" onClick={() => router.refresh()}>
+              Load their version
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setRemoteChange(null)}
+            >
+              Keep editing
+            </Button>
+          </div>
+        </Notice>
+      ) : null}
+
+      {schemaChanged ? (
+        <Notice tone="warn" title="The content type changed">
+          <p>
+            Its fields were edited while you had this open, so this form may no
+            longer match. Reload to regenerate it.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            className="mt-2"
+            onClick={() => window.location.reload()}
+          >
+            Reload the form
+          </Button>
+        </Notice>
+      ) : null}
+
       {entry?.invalid ? (
         <Notice tone="warn" title="This entry needs attention">
           It was flagged when the schema or a referenced entry changed. Saving
@@ -164,18 +250,17 @@ export function EntryForm({ schema, entry, referenceOptions }: EntryFormProps) {
       </Card>
 
       {formError ? (
-        <Notice tone={conflict ? "warn" : "danger"} title={conflict ? "Edit conflict" : undefined}>
+        <Notice
+          tone={conflict ? "warn" : "danger"}
+          title={conflict ? "Edit conflict" : undefined}
+        >
           {formError}
         </Notice>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2">
         <Button type="submit" variant="primary" disabled={pending}>
-          {pending
-            ? "Saving…"
-            : isEditing
-              ? "Save changes"
-              : "Create entry"}
+          {pending ? "Saving…" : isEditing ? "Save changes" : "Create entry"}
         </Button>
 
         {conflict ? (

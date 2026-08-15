@@ -1,4 +1,5 @@
 import { Sidebar } from "@/components/layout/sidebar";
+import { RealtimeProvider } from "@/lib/realtime/provider";
 import { listSchemas } from "@/lib/queries";
 
 /**
@@ -13,11 +14,13 @@ export default async function AdminLayout({
   const { data: schemas, error } = await listSchemas();
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar schemas={schemas} error={error} />
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-5xl px-8 py-10">{children}</div>
-      </main>
-    </div>
+    <RealtimeProvider>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar schemas={schemas} error={error} />
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-5xl px-8 py-10">{children}</div>
+        </main>
+      </div>
+    </RealtimeProvider>
   );
 }

@@ -32,3 +32,15 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/* One-shot flash for the realtime "Updated" affordance. Keyed remounting
+   restarts it, so the indicator needs no timer state. */
+@keyframes flash-out {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

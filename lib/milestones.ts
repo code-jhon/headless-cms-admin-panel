@@ -43,7 +43,7 @@ export const MILESTONES: Milestone[] = [
     id: 4,
     label: "Real-time",
     detail: "Every client stays in sync",
-    done: false,
+    done: true,
   },
   {
     id: 5,

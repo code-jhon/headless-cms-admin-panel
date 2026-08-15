@@ -24,6 +24,12 @@ export interface EntryActionResult {
   entryId?: string;
   /** Set when the write was rejected because the entry moved on. */
   conflict?: boolean;
+  /**
+   * The row's `updated_at` after a successful write. The client keeps this as
+   * its new baseline so it can tell its own realtime echo from someone
+   * else's edit.
+   */
+  updatedAt?: string;
 }
 
 function fail(
@@ -184,17 +190,19 @@ export async function updateEntry(
     );
   }
 
-  const { error } = await db
+  const { data: saved, error } = await db
     .from("entries")
     .update({ data: parsed.data as Entry["data"], invalid: false })
     .eq("id", entryId)
-    .eq("schema_id", schemaId);
+    .eq("schema_id", schemaId)
+    .select("updated_at")
+    .single();
 
   if (error) return fail(error.message);
 
   revalidatePath(`/content/${apiId}`);
   revalidatePath(`/content/${apiId}/${entryId}`);
-  return { ok: true, entryId };
+  return { ok: true, entryId, updatedAt: saved.updated_at };
 }
 
 /**
