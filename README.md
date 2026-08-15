@@ -6,11 +6,11 @@ time, and the stored content is readable over a simple HTTP API.
 
 Built for the [Agile Monkeys Frontend Challenge 2026](https://frontend-challenge-2026.theagilemonkeys.com/).
 
-> **Status: milestone 1 (Schema Builder).** Content types and their fields are
-> fully manageable through the UI, with a live change summary that classifies
-> every pending edit as safe, lossy or blocking. The entry editor, read API,
-> real-time sync and the full schema-evolution flow land in milestones 2–5 —
-> see [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md).
+> **Status: milestone 2 (Dynamic Entry Editor).** Content types are manageable
+> through the UI, and entries for any of them are created and edited through a
+> form generated from the schema — no per-type code. The read API, real-time
+> sync and the full schema-evolution flow land in milestones 3–5 — see
+> [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md).
 
 ---
 
@@ -22,7 +22,7 @@ Built for the [Agile Monkeys Frontend Challenge 2026](https://frontend-challenge
 | Styling | Tailwind CSS v4 (CSS-first theme, no config file) |
 | Data | Supabase Postgres — `schemas`, `fields`, `entries` (JSONB) |
 | Real-time | Supabase Realtime (`postgres_changes`) |
-| Forms | React Hook Form + Zod compiled at runtime from the schema |
+| Forms | Zod compiled at runtime from the schema; one renderer per field type |
 
 ## Prerequisites
 
@@ -98,18 +98,21 @@ app/
   (admin)/           # admin shell — sidebar + content area
     page.tsx         # dashboard, lists content types and roadmap
     schemas/         # schema builder: list, new, [apiId] editor
+    content/         # entry list + generated editor per content type
     health/          # connection + realtime health check
   api/content/       # read API                  (milestone 3)
 components/
   layout/            # shell chrome
-  fields/            # one renderer per field type (milestone 2)
+  fields/            # one renderer per field type — the registry
+  entry/             # entry list, generated form, delete
+  schema/            # schema builder UI
 lib/
   env.ts             # validated environment
   supabase/          # browser + server clients
   queries.ts         # server-side reads
   health.ts          # health check logic
   actions/           # server actions (all writes)
-  schema/            # validation + diff engine, with unit tests
+  schema/            # validation, diff engine, runtime Zod, display helpers
   migrations/        # analyze · preview · resolve  (milestone 5)
 scripts/seed.ts      # idempotent seed
 supabase/migrations/ # SQL, run against your project
@@ -139,5 +142,6 @@ single-tenant demo posture, not a production one.
 
 - [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) — Supabase project setup, step by step
 - [`docs/MILESTONE_1_SCHEMA_BUILDER.md`](docs/MILESTONE_1_SCHEMA_BUILDER.md) — what milestone 1 built, and how it was verified
+- [`docs/MILESTONE_2_ENTRY_EDITOR.md`](docs/MILESTONE_2_ENTRY_EDITOR.md) — the generated entry editor
 - [`docs/PRD.md`](docs/PRD.md) — scope, requirements, acceptance criteria
 - [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md) — architecture, data model, milestones, risks

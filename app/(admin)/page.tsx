@@ -1,17 +1,9 @@
 import Link from "next/link";
 
+import { MILESTONES } from "@/lib/milestones";
 import { listSchemas } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
-
-const MILESTONES = [
-  { id: 0, label: "Foundation", detail: "Next.js, Supabase, schema, seed", done: true },
-  { id: 1, label: "Schema Builder", detail: "Create and edit content types", done: false },
-  { id: 2, label: "Dynamic Editor", detail: "Forms generated from the schema", done: false },
-  { id: 3, label: "Read API", detail: "GET /api/content/[type]", done: false },
-  { id: 4, label: "Real-time", detail: "Every client stays in sync", done: false },
-  { id: 5, label: "Schema Evolution", detail: "Preview and fix before applying", done: false },
-];
 
 export default async function DashboardPage() {
   const { data: schemas, error } = await listSchemas();

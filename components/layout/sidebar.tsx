@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { currentMilestone } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
 import type { ContentSchema } from "@/types/cms";
 
@@ -59,7 +60,7 @@ export function Sidebar({ schemas, error }: SidebarProps) {
 
       <div className="border-t border-border-subtle px-5 py-3">
         <p className="text-[11px] leading-relaxed text-ink-muted">
-          Milestone 0 — Foundation
+          Milestone {currentMilestone().id} — {currentMilestone().label}
         </p>
       </div>
     </aside>

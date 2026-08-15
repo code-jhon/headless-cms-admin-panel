@@ -1,7 +1,7 @@
 # Implementation Strategy — Headless CMS Admin Panel
 
 **Project:** `headless-cms-admin-panel`
-**Status:** v1.2 — milestones 0–1 delivered · **Date:** 2026-08-15
+**Status:** v1.3 — milestones 0–2 delivered · **Date:** 2026-08-15
 **Related doc:** [`PRD.md`](./PRD.md)
 
 ---
@@ -12,7 +12,7 @@
 |---|---|---|
 | App | **Next.js 16 (App Router) + TypeScript** | One repo, one deploy; Route Handlers are exactly the "thin backend" the challenge asks for |
 | UI | React 19, Tailwind CSS v4, hand-rolled primitives | The surface needed is a few form controls; native `<select>`/`<dialog>` give a11y for free without a Radix dependency tree |
-| Forms | React Hook Form + Zod (schemas compiled at runtime) | Zod validators are generated from the content schema, so validation is data-driven |
+| Forms | Plain state + Zod compiled at runtime | Validators are generated from the content schema, so validation is data-driven; for array-driven fields this is less machinery than a form library |
 | Data | **Supabase Postgres** | Managed Postgres, JSONB for entry values, SQL for migrations and integrity |
 | Real-time | **Supabase Realtime** | Postgres change feed straight to every client — no custom socket server to build or explain |
 | Deploy | Vercel + Supabase free tiers | Reviewer can open a live URL |
@@ -122,7 +122,7 @@ Transform rules live in one pure module (`lib/migrations/transform.ts`), so the 
 |---|---|---|
 | **0** | Foundation ✅ | Next.js + Tailwind + Supabase clients, `0001_init.sql`, idempotent seed, admin shell, health check |
 | **1** | Schema Builder (PRD A) ✅ | CRUD on schemas and fields, machine-name validation, reference targets, draft/change-set model with risk gating |
-| **2** | Dynamic Editor (PRD B) | Renderer registry, runtime Zod, entry list + CRUD, reference picker |
+| **2** | Dynamic Editor (PRD B) ✅ | Renderer registry, runtime Zod, entry list + CRUD, reference picker, optimistic concurrency |
 | **3** | Read API (PRD E) | Both endpoints, pagination, expand, error bodies |
 | **4** | Real-time (PRD C) | Subscriptions, invalidation, connection indicator, conflict detection |
 | **5** | Schema Evolution (PRD D) | Diff → classify → analyze → preview → resolve → apply RPC |
@@ -132,7 +132,7 @@ Milestones 1–3 make the product real; 4 makes it feel alive; 5 is where the en
 
 ## 6. Testing
 
-- **Unit (Vitest)** — *(59 tests passing as of milestone 1)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
+- **Unit (Vitest)** — *(117 tests passing as of milestone 2)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
 - **Integration** — Route Handlers against a seeded test database.
 - **E2E (Playwright)** — the four PRD flows, plus a two-context test asserting real-time propagation between clients.
 

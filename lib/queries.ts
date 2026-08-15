@@ -2,7 +2,13 @@ import "server-only";
 
 import { getServerClient } from "@/lib/supabase/server";
 import { isEnvConfigured } from "@/lib/env";
-import type { ContentSchema, Field, SchemaWithFields } from "@/types/cms";
+import { entryTitle } from "@/lib/schema/display";
+import type {
+  ContentSchema,
+  Entry,
+  Field,
+  SchemaWithFields,
+} from "@/types/cms";
 
 export interface Result<T> {
   data: T;
@@ -176,4 +182,109 @@ export async function listFields(schemaId: string): Promise<Result<Field[]>> {
 
   if (error) return { data: [], error: error.message };
   return { data: data ?? [], error: null };
+}
+
+/* ----------------------------------------------------------------- entries */
+
+/** Entries for a schema, newest first. */
+export async function listEntries(
+  schemaId: string,
+): Promise<Result<Entry[]>> {
+  if (!isEnvConfigured()) return { data: [], error: NOT_CONFIGURED };
+
+  const { data, error } = await getServerClient()
+    .from("entries")
+    .select("*")
+    .eq("schema_id", schemaId)
+    .order("updated_at", { ascending: false });
+
+  if (error) return { data: [], error: error.message };
+  return { data: data ?? [], error: null };
+}
+
+/** One entry, scoped to its schema so a mismatched URL 404s rather than leaks. */
+export async function getEntry(
+  schemaId: string,
+  entryId: string,
+): Promise<Result<Entry | null>> {
+  if (!isEnvConfigured()) return { data: null, error: NOT_CONFIGURED };
+
+  const { data, error } = await getServerClient()
+    .from("entries")
+    .select("*")
+    .eq("id", entryId)
+    .eq("schema_id", schemaId)
+    .maybeSingle();
+
+  if (error) return { data: null, error: error.message };
+  return { data: data ?? null, error: null };
+}
+
+/**
+ * Options for every reference field on a schema, keyed by field key.
+ *
+ * Resolved server-side in one pass so the form renders complete on first
+ * paint — no picker that starts empty and fills in later.
+ */
+export async function listReferenceOptions(
+  fields: Field[],
+): Promise<Record<string, Array<{ id: string; title: string }>>> {
+  const referenceFields = fields.filter(
+    (f) => f.type === "reference" && f.target_schema_id,
+  );
+  if (referenceFields.length === 0 || !isEnvConfigured()) return {};
+
+  const db = getServerClient();
+  const targetIds = [
+    ...new Set(referenceFields.map((f) => f.target_schema_id!)),
+  ];
+
+  const [entriesRes, fieldsRes] = await Promise.all([
+    db.from("entries").select("*").in("schema_id", targetIds),
+    db
+      .from("fields")
+      .select("*")
+      .in("schema_id", targetIds)
+      .order("position", { ascending: true }),
+  ]);
+
+  const fieldsBySchema = new Map<string, Field[]>();
+  for (const field of fieldsRes.data ?? []) {
+    const list = fieldsBySchema.get(field.schema_id) ?? [];
+    list.push(field);
+    fieldsBySchema.set(field.schema_id, list);
+  }
+
+  const entriesBySchema = new Map<string, Entry[]>();
+  for (const entry of entriesRes.data ?? []) {
+    const list = entriesBySchema.get(entry.schema_id) ?? [];
+    list.push(entry);
+    entriesBySchema.set(entry.schema_id, list);
+  }
+
+  const options: Record<string, Array<{ id: string; title: string }>> = {};
+  for (const field of referenceFields) {
+    const targetId = field.target_schema_id!;
+    const targetFields = fieldsBySchema.get(targetId) ?? [];
+    options[field.key] = (entriesBySchema.get(targetId) ?? [])
+      .map((entry) => ({ id: entry.id, title: entryTitle(entry, targetFields) }))
+      .sort((a, b) => a.title.localeCompare(b.title, "en"));
+  }
+
+  return options;
+}
+
+/**
+ * Titles for every entry referenced by this schema's reference fields,
+ * so a list can show "Ada Lovelace" instead of a uuid.
+ */
+export async function listReferenceTitles(
+  fields: Field[],
+): Promise<Map<string, string>> {
+  const byField = await listReferenceOptions(fields);
+  const titles = new Map<string, string>();
+  for (const options of Object.values(byField)) {
+    for (const option of options) titles.set(option.id, option.title);
+  }
+  return titles;
 }
