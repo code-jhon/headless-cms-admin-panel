@@ -46,6 +46,15 @@ export type SchemaWithFields = ContentSchema & {
   fields: Field[];
 }
 
+/** JSON as Postgres round-trips it — used for jsonb arguments and returns. */
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 /** Values a field can hold once stored. References hold the target entry id. */
 export type FieldValue = string | number | boolean | null;
 
@@ -114,7 +123,18 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      /** Milestone 5 — see supabase/migrations/0002_apply_schema_migration.sql */
+      apply_schema_migration: {
+        Args: {
+          p_schema_id: string;
+          p_delete_field_ids: string[];
+          p_fields: Json;
+          p_entries: Json;
+        };
+        Returns: Json;
+      };
+    };
     Enums: { field_type: FieldType };
     CompositeTypes: Record<string, never>;
   };

@@ -6,11 +6,12 @@ time, and the stored content is readable over a simple HTTP API.
 
 Built for the [Agile Monkeys Frontend Challenge 2026](https://frontend-challenge-2026.theagilemonkeys.com/).
 
-> **Status: milestone 4 (Real-time).** Content types are manageable through the
-> UI, entries are edited through a form generated from the schema, the content
-> is readable over HTTP at `/api/content`, and every open client stays in sync
-> with concurrent edits surfaced rather than silently resolved. The full
-> schema-evolution flow lands in milestone 5 — see
+> **Status: milestone 5 — feature complete.** Content types are manageable
+> through the UI, entries are edited through forms generated from the schema,
+> the content is readable over HTTP at `/api/content`, every open client stays
+> in sync, and schema changes go through a review that shows exactly what will
+> happen to existing data before anything is written. Remaining work is polish
+> and the written deliverables — see
 > [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md).
 
 ---
@@ -44,6 +45,9 @@ In your Supabase project, open **SQL Editor → New query**, paste the whole of
 [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) and
 run it. It creates the three tables, the `field_type` enum, the `updated_at`
 triggers, the Realtime publication and the RLS policies.
+
+Then run [`supabase/migrations/0002_apply_schema_migration.sql`](supabase/migrations/0002_apply_schema_migration.sql)
+the same way. It adds the function that applies schema migrations atomically.
 
 **3. Configure the environment**
 
@@ -117,7 +121,7 @@ lib/
   api/               # read-API data access, serialization, params, errors
   realtime/          # subscription provider + pure sync policy
   schema/            # validation, diff engine, runtime Zod, display helpers
-  migrations/        # analyze · preview · resolve  (milestone 5)
+  migrations/        # conversion, dry run, write plan — schema evolution
 scripts/seed.ts      # idempotent seed
 supabase/migrations/ # SQL, run against your project
 types/cms.ts         # domain + Database types
@@ -156,6 +160,18 @@ list without a refresh, and editing the *same* entry in both surfaces a
 conflict instead of letting the second save overwrite the first. Connection
 state is always visible in the sidebar; click it to refetch on demand.
 
+## Schema evolution
+
+Changing a field on a content type that already has entries opens a review
+rather than saving straight away. It shows how many entries each change
+affects, what every value becomes, and which values will not convert — and
+lets you decide what happens to those: set a default, clear them, or flag them
+for someone to fix. Applying runs as a single transaction: it all lands or
+none of it does.
+
+The conversion logic lives in one place (`lib/migrations/transform.ts`) and is
+used by both the preview and the write, so the two cannot disagree.
+
 ## Security note
 
 There is no authentication: the challenge scopes it out, so the `anon` role has
@@ -170,5 +186,7 @@ single-tenant demo posture, not a production one.
 - [`docs/API.md`](docs/API.md) — read API reference: endpoints, parameters, response shape, errors
 - [`docs/MILESTONE_3_READ_API.md`](docs/MILESTONE_3_READ_API.md) — what milestone 3 built, and how it was verified
 - [`docs/MILESTONE_4_REALTIME.md`](docs/MILESTONE_4_REALTIME.md) — real-time sync and concurrent-edit handling
+- [`docs/MILESTONE_5_SCHEMA_EVOLUTION.md`](docs/MILESTONE_5_SCHEMA_EVOLUTION.md) — the review → preview → resolve → apply flow
+- [`docs/AI_WORKFLOW.md`](docs/AI_WORKFLOW.md) — how AI was used, and the nine defects it produced that verification caught
 - [`docs/PRD.md`](docs/PRD.md) — scope, requirements, acceptance criteria
 - [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md) — architecture, data model, milestones, risks

@@ -49,7 +49,7 @@ export const MILESTONES: Milestone[] = [
     id: 5,
     label: "Schema Evolution",
     detail: "Preview and fix before applying",
-    done: false,
+    done: true,
   },
 ];
 

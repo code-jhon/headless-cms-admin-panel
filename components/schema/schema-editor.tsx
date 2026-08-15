@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button, FormField, Input, Notice, Textarea } from "@/components/ui";
 import { DeleteSchemaDialog } from "./delete-schema-dialog";
 import { FieldEditor, fieldToDraft, useSaveState } from "./field-editor";
+import { MigrationReview } from "./migration-review";
+import { diffFields, gateChanges } from "@/lib/schema/diff";
 import { saveSchemaFields, updateSchemaMeta } from "@/lib/actions/schemas";
 import type { SchemaUsage } from "@/lib/queries";
 import type { FieldDraft } from "@/lib/schema/validation";
@@ -28,9 +30,28 @@ export function SchemaEditor({
   const [fields, setFields] = useState<FieldDraft[]>(
     schema.fields.map(fieldToDraft),
   );
+  const [reviewing, setReviewing] = useState(false);
 
   const metaChanged =
     name !== schema.name || description !== (schema.description ?? "");
+
+  /**
+   * Which save path applies.
+   *
+   * With no entries there is nothing to migrate, so changes go straight
+   * through the plain save. Once entries exist, anything non-safe goes
+   * through the review flow instead of being refused — that is the gate
+   * milestone 1 put in place and milestone 5 lifts.
+   */
+  const changes = useMemo(
+    () => diffFields(schema.fields, fields),
+    [schema.fields, fields],
+  );
+  const gate = useMemo(
+    () => gateChanges(changes, usage.entryCount),
+    [changes, usage.entryCount],
+  );
+  const needsMigration = changes.length > 0 && !gate.canApply;
 
   function handleSave() {
     save.run(async () => {
@@ -112,14 +133,24 @@ export function SchemaEditor({
         </div>
       </div>
 
-      <FieldEditor
-        saved={schema.fields}
-        fields={fields}
-        onChange={setFields}
-        referenceTargets={allSchemas}
-        entryCount={usage.entryCount}
-        serverFieldErrors={save.fieldErrors}
-      />
+      {reviewing ? (
+        <MigrationReview
+          schemaId={schema.id}
+          apiId={schema.api_id}
+          draft={fields}
+          onCancel={() => setReviewing(false)}
+          onApplied={() => setReviewing(false)}
+        />
+      ) : (
+        <FieldEditor
+          saved={schema.fields}
+          fields={fields}
+          onChange={setFields}
+          referenceTargets={allSchemas}
+          entryCount={usage.entryCount}
+          serverFieldErrors={save.fieldErrors}
+        />
+      )}
 
       {save.error ? <Notice tone="danger">{save.error}</Notice> : null}
 
@@ -129,15 +160,26 @@ export function SchemaEditor({
         </Notice>
       ) : null}
 
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="primary"
-          disabled={save.pending}
-          onClick={handleSave}
-        >
-          {save.pending ? "Saving…" : "Save changes"}
-        </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        {needsMigration ? (
+          <Button
+            type="button"
+            variant="primary"
+            disabled={save.pending}
+            onClick={() => setReviewing(true)}
+          >
+            Review {changes.length} change{changes.length === 1 ? "" : "s"}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="primary"
+            disabled={save.pending}
+            onClick={handleSave}
+          >
+            {save.pending ? "Saving…" : "Save changes"}
+          </Button>
+        )}
         <Button
           type="button"
           disabled={save.pending}

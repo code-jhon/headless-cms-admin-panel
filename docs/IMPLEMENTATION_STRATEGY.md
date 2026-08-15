@@ -1,7 +1,7 @@
 # Implementation Strategy — Headless CMS Admin Panel
 
 **Project:** `headless-cms-admin-panel`
-**Status:** v1.5 — milestones 0–4 delivered · **Date:** 2026-08-15
+**Status:** v1.6 — milestones 0–5 delivered · **Date:** 2026-08-15
 **Related doc:** [`PRD.md`](./PRD.md)
 
 ---
@@ -110,7 +110,7 @@ Editing a schema builds a **change set** in client state — nothing is written 
 5. **Resolve** — per change, the user picks: *set a default*, *fix rows inline*, or *flag entries invalid*.
 6. **Apply** — a single Postgres RPC in one transaction: update `fields`, transform every `entries.data`, set `invalid` flags. Realtime broadcasts the result to all clients.
 
-Transform rules live in one pure module (`lib/migrations/transform.ts`), so the dry-run and the real apply share identical logic — the preview can never lie.
+Transform rules live in one pure module (`lib/migrations/transform.ts`), so the dry-run and the real apply share identical logic — the preview can never lie. The RPC receives already-computed values and provides only atomicity; putting the transform in SQL would have meant two implementations of the same rules.
 
 ### Read API
 
@@ -125,14 +125,14 @@ Transform rules live in one pure module (`lib/migrations/transform.ts`), so the 
 | **2** | Dynamic Editor (PRD B) ✅ | Renderer registry, runtime Zod, entry list + CRUD, reference picker, optimistic concurrency |
 | **3** | Read API (PRD E) ✅ | Both endpoints plus discovery, pagination, expand, typed error bodies |
 | **4** | Real-time (PRD C) ✅ | One coalesced subscription, invalidate-and-refetch, connection indicator, resync on reconnect, frozen concurrency token |
-| **5** | Schema Evolution (PRD D) | Diff → classify → analyze → preview → resolve → apply RPC |
+| **5** | Schema Evolution (PRD D) ✅ | Diff → classify → analyze → preview → resolve → atomic apply RPC. Transform stays in TypeScript so the preview and the write cannot disagree. |
 | **6** | Polish & deliverables | Empty/loading/error states, README, deploy, walkthrough deck, AI session record |
 
 Milestones 1–3 make the product real; 4 makes it feel alive; 5 is where the engineering judgement shows. If time compresses, polish in milestone 6 gives way before anything in 5.
 
 ## 6. Testing
 
-- **Unit (Vitest)** — *(179 tests passing as of milestone 4)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
+- **Unit (Vitest)** — *(219 tests passing as of milestone 5)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
 - **Integration** — Route Handlers invoked directly with the data layer (`lib/api/data`) stubbed, so status codes, shapes and pagination are covered without a live project.
 - **E2E (Playwright)** — the four PRD flows, plus a two-context test asserting real-time propagation between clients.
 

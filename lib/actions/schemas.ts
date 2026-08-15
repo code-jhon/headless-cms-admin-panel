@@ -197,8 +197,8 @@ export async function saveSchemaFields(
   if (!gate.canApply) {
     const first = gate.blocked[0];
     return fail(
-      `"${first.summary}" needs the schema-change review flow, which arrives in milestone 5. ` +
-        `${entryCount} entr${entryCount === 1 ? "y" : "ies"} would be affected.`,
+      `"${first.summary}" affects ${entryCount} existing entr${entryCount === 1 ? "y" : "ies"}, ` +
+        `so it has to go through the change review rather than a plain save.`,
     );
   }
 

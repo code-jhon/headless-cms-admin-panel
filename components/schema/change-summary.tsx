@@ -67,8 +67,8 @@ export function ChangeSummary({
                     </p>
                   ) : null}
                   {isBlocked ? (
-                    <p className="mt-1 text-xs font-medium text-danger">
-                      Held back — needs the review flow (milestone 5).
+                    <p className="mt-1 text-xs font-medium text-warn">
+                      Needs review before it can be applied.
                     </p>
                   ) : null}
                 </div>
