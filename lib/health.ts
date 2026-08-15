@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getServerClient } from "@/lib/supabase/server";
-import { isEnvConfigured } from "@/lib/env";
+import { getPublicEnv, isEnvConfigured } from "@/lib/env";
 
 export type CheckStatus = "ok" | "warn" | "fail";
 
@@ -27,8 +27,9 @@ export async function runHealthChecks(): Promise<HealthCheck[]> {
       {
         name: "Environment",
         status: "fail",
-        detail: "NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is missing.",
-        fix: "Copy .env.example to .env.local, fill in both values from Supabase → Settings → API, then restart the dev server.",
+        detail:
+          "NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is missing.",
+        fix: "Copy .env.example to .env.local, fill in the Project URL (Settings → Data API) and the publishable key (Settings → API Keys), then restart the dev server. See docs/SUPABASE_SETUP.md.",
       },
       {
         name: "Database connection",
@@ -38,11 +39,21 @@ export async function runHealthChecks(): Promise<HealthCheck[]> {
     ];
   }
 
-  checks.push({
-    name: "Environment",
-    status: "ok",
-    detail: "Supabase URL and anon key are set.",
-  });
+  const env = getPublicEnv();
+  checks.push(
+    env.usingLegacyKey
+      ? {
+          name: "Environment",
+          status: "warn",
+          detail: "Using the legacy JWT `anon` key.",
+          fix: "Supabase retires legacy keys at the end of 2026. Switch to NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (Settings → API Keys).",
+        }
+      : {
+          name: "Environment",
+          status: "ok",
+          detail: "Project URL and publishable key are set.",
+        },
+  );
 
   const db = getServerClient();
   const tables = ["schemas", "fields", "entries"] as const;
@@ -104,7 +115,7 @@ function explainTableError(message: string): string {
     return "The table is missing. Run supabase/migrations/0001_init.sql in your Supabase project's SQL Editor.";
   }
   if (/JWT|api key|invalid|401|403/i.test(message)) {
-    return "The anon key was rejected. Re-copy NEXT_PUBLIC_SUPABASE_ANON_KEY from Settings → API.";
+    return "The key was rejected. Re-copy the publishable key from Settings → API Keys.";
   }
   if (/permission|policy|RLS/i.test(message)) {
     return "Blocked by row-level security. Re-run the policy statements at the end of 0001_init.sql.";

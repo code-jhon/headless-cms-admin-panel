@@ -49,12 +49,15 @@ triggers, the Realtime publication and the RLS policies.
 cp .env.example .env.local
 ```
 
-Fill both values from **Supabase → Settings → API**:
+Fill both values from your Supabase dashboard:
 
 | Variable | Where to find it |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / publishable key |
+| `NEXT_PUBLIC_SUPABASE_URL` | Settings → Data API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Settings → API Keys → publishable key (`sb_publishable_…`) |
+
+Step-by-step walkthrough, including how to verify each step and what to do
+when one fails: [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md).
 
 **4. Run**
 
@@ -131,5 +134,6 @@ single-tenant demo posture, not a production one.
 
 ## Documentation
 
+- [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) — Supabase project setup, step by step
 - [`docs/PRD.md`](docs/PRD.md) — scope, requirements, acceptance criteria
 - [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md) — architecture, data model, milestones, risks

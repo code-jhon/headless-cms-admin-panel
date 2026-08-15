@@ -21,8 +21,8 @@ export function getServerClient() {
 
   const env = getPublicEnv();
   client = createClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    env.url,
+    env.key,
     {
       auth: { persistSession: false, autoRefreshToken: false },
     },
