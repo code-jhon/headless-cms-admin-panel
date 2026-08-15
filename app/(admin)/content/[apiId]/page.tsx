@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { EndpointPanel } from "@/components/api/endpoint-panel";
 import { EntryTable } from "@/components/entry/entry-table";
 import { Button, Card, Notice } from "@/components/ui";
 import {
@@ -62,6 +63,15 @@ export default async function ContentListPage({
           ) : null}
         </div>
       </header>
+
+      {schema.fields.length > 0 ? (
+        <EndpointPanel
+          apiId={schema.api_id}
+          referenceKeys={schema.fields
+            .filter((f) => f.type === "reference")
+            .map((f) => f.key)}
+        />
+      ) : null}
 
       {schema.fields.length === 0 ? (
         <Card className="border-dashed p-8 text-center">

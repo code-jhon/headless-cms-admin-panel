@@ -6,10 +6,10 @@ time, and the stored content is readable over a simple HTTP API.
 
 Built for the [Agile Monkeys Frontend Challenge 2026](https://frontend-challenge-2026.theagilemonkeys.com/).
 
-> **Status: milestone 2 (Dynamic Entry Editor).** Content types are manageable
-> through the UI, and entries for any of them are created and edited through a
-> form generated from the schema — no per-type code. The read API, real-time
-> sync and the full schema-evolution flow land in milestones 3–5 — see
+> **Status: milestone 3 (Read API).** Content types are manageable through the
+> UI, entries are edited through a form generated from the schema, and the
+> stored content is readable over HTTP at `/api/content`. Real-time sync and
+> the full schema-evolution flow land in milestones 4–5 — see
 > [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md).
 
 ---
@@ -100,7 +100,7 @@ app/
     schemas/         # schema builder: list, new, [apiId] editor
     content/         # entry list + generated editor per content type
     health/          # connection + realtime health check
-  api/content/       # read API                  (milestone 3)
+  api/content/       # read API: discovery, collection, single entry
 components/
   layout/            # shell chrome
   fields/            # one renderer per field type — the registry
@@ -112,6 +112,7 @@ lib/
   queries.ts         # server-side reads
   health.ts          # health check logic
   actions/           # server actions (all writes)
+  api/               # read-API data access, serialization, params, errors
   schema/            # validation, diff engine, runtime Zod, display helpers
   migrations/        # analyze · preview · resolve  (milestone 5)
 scripts/seed.ts      # idempotent seed
@@ -132,6 +133,19 @@ previewed before they are applied. The trade-off is that the database enforces
 no per-field constraints — validation lives in a Zod schema compiled at runtime
 from the `fields` rows, on the server, on every write.
 
+## Read API
+
+Content is readable over HTTP without auth:
+
+```bash
+curl "http://localhost:3000/api/content"                        # content types
+curl "http://localhost:3000/api/content/article?expand=author"  # entries
+```
+
+Full reference — parameters, response shape, error codes and limits — in
+[`docs/API.md`](docs/API.md). Each content type's page in the panel also shows
+its live endpoint with copyable `curl` commands.
+
 ## Security note
 
 There is no authentication: the challenge scopes it out, so the `anon` role has
@@ -143,5 +157,7 @@ single-tenant demo posture, not a production one.
 - [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) — Supabase project setup, step by step
 - [`docs/MILESTONE_1_SCHEMA_BUILDER.md`](docs/MILESTONE_1_SCHEMA_BUILDER.md) — what milestone 1 built, and how it was verified
 - [`docs/MILESTONE_2_ENTRY_EDITOR.md`](docs/MILESTONE_2_ENTRY_EDITOR.md) — the generated entry editor
+- [`docs/API.md`](docs/API.md) — read API reference: endpoints, parameters, response shape, errors
+- [`docs/MILESTONE_3_READ_API.md`](docs/MILESTONE_3_READ_API.md) — what milestone 3 built, and how it was verified
 - [`docs/PRD.md`](docs/PRD.md) — scope, requirements, acceptance criteria
 - [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md) — architecture, data model, milestones, risks

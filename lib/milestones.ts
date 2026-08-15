@@ -37,7 +37,7 @@ export const MILESTONES: Milestone[] = [
     id: 3,
     label: "Read API",
     detail: "GET /api/content/[type]",
-    done: false,
+    done: true,
   },
   {
     id: 4,

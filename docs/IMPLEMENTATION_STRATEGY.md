@@ -1,7 +1,7 @@
 # Implementation Strategy — Headless CMS Admin Panel
 
 **Project:** `headless-cms-admin-panel`
-**Status:** v1.3 — milestones 0–2 delivered · **Date:** 2026-08-15
+**Status:** v1.4 — milestones 0–3 delivered · **Date:** 2026-08-15
 **Related doc:** [`PRD.md`](./PRD.md)
 
 ---
@@ -123,7 +123,7 @@ Transform rules live in one pure module (`lib/migrations/transform.ts`), so the 
 | **0** | Foundation ✅ | Next.js + Tailwind + Supabase clients, `0001_init.sql`, idempotent seed, admin shell, health check |
 | **1** | Schema Builder (PRD A) ✅ | CRUD on schemas and fields, machine-name validation, reference targets, draft/change-set model with risk gating |
 | **2** | Dynamic Editor (PRD B) ✅ | Renderer registry, runtime Zod, entry list + CRUD, reference picker, optimistic concurrency |
-| **3** | Read API (PRD E) | Both endpoints, pagination, expand, error bodies |
+| **3** | Read API (PRD E) ✅ | Both endpoints plus discovery, pagination, expand, typed error bodies |
 | **4** | Real-time (PRD C) | Subscriptions, invalidation, connection indicator, conflict detection |
 | **5** | Schema Evolution (PRD D) | Diff → classify → analyze → preview → resolve → apply RPC |
 | **6** | Polish & deliverables | Empty/loading/error states, README, deploy, walkthrough deck, AI session record |
@@ -132,8 +132,8 @@ Milestones 1–3 make the product real; 4 makes it feel alive; 5 is where the en
 
 ## 6. Testing
 
-- **Unit (Vitest)** — *(117 tests passing as of milestone 2)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
-- **Integration** — Route Handlers against a seeded test database.
+- **Unit (Vitest)** — *(154 tests passing as of milestone 3)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
+- **Integration** — Route Handlers invoked directly with the data layer (`lib/api/data`) stubbed, so status codes, shapes and pagination are covered without a live project.
 - **E2E (Playwright)** — the four PRD flows, plus a two-context test asserting real-time propagation between clients.
 
 ## 7. Repository Layout
