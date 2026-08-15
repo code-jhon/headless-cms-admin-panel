@@ -6,10 +6,11 @@ time, and the stored content is readable over a simple HTTP API.
 
 Built for the [Agile Monkeys Frontend Challenge 2026](https://frontend-challenge-2026.theagilemonkeys.com/).
 
-> **Status: milestone 0 (Foundation).** The stack, database schema, seed data
-> and app shell are in place, verified by a health check page. The Schema
-> Builder, entry editor, read API, real-time sync and schema-evolution flow
-> land in milestones 1–5 — see [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md).
+> **Status: milestone 1 (Schema Builder).** Content types and their fields are
+> fully manageable through the UI, with a live change summary that classifies
+> every pending edit as safe, lossy or blocking. The entry editor, read API,
+> real-time sync and the full schema-evolution flow land in milestones 2–5 —
+> see [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md).
 
 ---
 
@@ -87,6 +88,7 @@ idempotent; `npm run seed -- --reset` wipes and recreates them.
 | `npm start` | Serve the production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Unit tests (Vitest) |
 | `npm run seed` | Insert example schemas and entries (`-- --reset` to recreate) |
 
 ## Project layout
@@ -95,7 +97,7 @@ idempotent; `npm run seed -- --reset` wipes and recreates them.
 app/
   (admin)/           # admin shell — sidebar + content area
     page.tsx         # dashboard, lists content types and roadmap
-    schemas/         # schema builder            (milestone 1)
+    schemas/         # schema builder: list, new, [apiId] editor
     health/          # connection + realtime health check
   api/content/       # read API                  (milestone 3)
 components/
@@ -106,8 +108,9 @@ lib/
   supabase/          # browser + server clients
   queries.ts         # server-side reads
   health.ts          # health check logic
-  schema/            # runtime Zod builder       (milestone 2)
-  migrations/        # diff · classify · preview · apply (milestone 5)
+  actions/           # server actions (all writes)
+  schema/            # validation + diff engine, with unit tests
+  migrations/        # analyze · preview · resolve  (milestone 5)
 scripts/seed.ts      # idempotent seed
 supabase/migrations/ # SQL, run against your project
 types/cms.ts         # domain + Database types
@@ -135,5 +138,6 @@ single-tenant demo posture, not a production one.
 ## Documentation
 
 - [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) — Supabase project setup, step by step
+- [`docs/MILESTONE_1_SCHEMA_BUILDER.md`](docs/MILESTONE_1_SCHEMA_BUILDER.md) — what milestone 1 built, and how it was verified
 - [`docs/PRD.md`](docs/PRD.md) — scope, requirements, acceptance criteria
 - [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md) — architecture, data model, milestones, risks
