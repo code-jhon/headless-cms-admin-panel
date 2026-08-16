@@ -28,7 +28,20 @@ create table if not exists public.schemas (
 -- fields: the typed columns of a schema
 -- `key` is the machine name and the JSONB key inside entries.data.
 -- ---------------------------------------------------------------------
-create type public.field_type as enum ('text', 'number', 'boolean', 'date', 'reference');
+-- `create type` has no IF NOT EXISTS, so guard it to keep this script
+-- re-runnable (the README promises that).
+do $$
+begin
+  if not exists (
+    select 1 from pg_type t
+    join pg_namespace n on n.oid = t.typnamespace
+    where t.typname = 'field_type' and n.nspname = 'public'
+  ) then
+    create type public.field_type as enum
+      ('text', 'number', 'boolean', 'date', 'reference');
+  end if;
+end
+$$;
 
 create table if not exists public.fields (
   id               uuid primary key default gen_random_uuid(),

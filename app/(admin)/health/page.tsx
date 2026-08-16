@@ -62,8 +62,9 @@ export default async function HealthPage() {
           </li>
           <li>
             Copy <code className="font-mono text-xs">.env.example</code> to{" "}
-            <code className="font-mono text-xs">.env.local</code> and fill in
-            the Project URL and anon key from Settings → API.
+            <code className="font-mono text-xs">.env.local</code>, then fill in
+            the Project URL (Settings → Data API) and the publishable key
+            (Settings → API Keys).
           </li>
           <li>
             Restart the dev server, then run{" "}

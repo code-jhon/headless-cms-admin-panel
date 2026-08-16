@@ -18,8 +18,8 @@ export function getBrowserClient() {
 
   const env = getPublicEnv();
   client = createBrowserClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    env.url,
+    env.key,
     {
       realtime: {
         // Cap the event rate so a bulk schema migration cannot flood clients.

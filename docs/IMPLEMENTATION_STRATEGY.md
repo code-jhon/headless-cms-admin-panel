@@ -1,7 +1,7 @@
 # Implementation Strategy — Headless CMS Admin Panel
 
 **Project:** `headless-cms-admin-panel`
-**Status:** v1.1 — milestone 0 delivered · **Date:** 2026-08-15
+**Status:** v1.6 — milestones 0–5 delivered · **Date:** 2026-08-15
 **Related doc:** [`PRD.md`](./PRD.md)
 
 ---
@@ -11,8 +11,8 @@
 | Layer | Choice | Why |
 |---|---|---|
 | App | **Next.js 16 (App Router) + TypeScript** | One repo, one deploy; Route Handlers are exactly the "thin backend" the challenge asks for |
-| UI | React 19, Tailwind CSS, shadcn/ui | Fast to compose admin surfaces without designing from zero |
-| Forms | React Hook Form + Zod (schemas compiled at runtime) | Zod validators are generated from the content schema, so validation is data-driven |
+| UI | React 19, Tailwind CSS v4, hand-rolled primitives | The surface needed is a few form controls; native `<select>`/`<dialog>` give a11y for free without a Radix dependency tree |
+| Forms | Plain state + Zod compiled at runtime | Validators are generated from the content schema, so validation is data-driven; for array-driven fields this is less machinery than a form library |
 | Data | **Supabase Postgres** | Managed Postgres, JSONB for entry values, SQL for migrations and integrity |
 | Real-time | **Supabase Realtime** | Postgres change feed straight to every client — no custom socket server to build or explain |
 | Deploy | Vercel + Supabase free tiers | Reviewer can open a live URL |
@@ -110,7 +110,7 @@ Editing a schema builds a **change set** in client state — nothing is written 
 5. **Resolve** — per change, the user picks: *set a default*, *fix rows inline*, or *flag entries invalid*.
 6. **Apply** — a single Postgres RPC in one transaction: update `fields`, transform every `entries.data`, set `invalid` flags. Realtime broadcasts the result to all clients.
 
-Transform rules live in one pure module (`lib/migrations/transform.ts`), so the dry-run and the real apply share identical logic — the preview can never lie.
+Transform rules live in one pure module (`lib/migrations/transform.ts`), so the dry-run and the real apply share identical logic — the preview can never lie. The RPC receives already-computed values and provides only atomicity; putting the transform in SQL would have meant two implementations of the same rules.
 
 ### Read API
 
@@ -121,19 +121,19 @@ Transform rules live in one pure module (`lib/migrations/transform.ts`), so the 
 | # | Milestone | Output |
 |---|---|---|
 | **0** | Foundation ✅ | Next.js + Tailwind + Supabase clients, `0001_init.sql`, idempotent seed, admin shell, health check |
-| **1** | Schema Builder (PRD A) | CRUD on schemas and fields, machine-name validation, reference targets |
-| **2** | Dynamic Editor (PRD B) | Renderer registry, runtime Zod, entry list + CRUD, reference picker |
-| **3** | Read API (PRD E) | Both endpoints, pagination, expand, error bodies |
-| **4** | Real-time (PRD C) | Subscriptions, invalidation, connection indicator, conflict detection |
-| **5** | Schema Evolution (PRD D) | Diff → classify → analyze → preview → resolve → apply RPC |
+| **1** | Schema Builder (PRD A) ✅ | CRUD on schemas and fields, machine-name validation, reference targets, draft/change-set model with risk gating |
+| **2** | Dynamic Editor (PRD B) ✅ | Renderer registry, runtime Zod, entry list + CRUD, reference picker, optimistic concurrency |
+| **3** | Read API (PRD E) ✅ | Both endpoints plus discovery, pagination, expand, typed error bodies |
+| **4** | Real-time (PRD C) ✅ | One coalesced subscription, invalidate-and-refetch, connection indicator, resync on reconnect, frozen concurrency token |
+| **5** | Schema Evolution (PRD D) ✅ | Diff → classify → analyze → preview → resolve → atomic apply RPC. Transform stays in TypeScript so the preview and the write cannot disagree. |
 | **6** | Polish & deliverables | Empty/loading/error states, README, deploy, walkthrough deck, AI session record |
 
 Milestones 1–3 make the product real; 4 makes it feel alive; 5 is where the engineering judgement shows. If time compresses, polish in milestone 6 gives way before anything in 5.
 
 ## 6. Testing
 
-- **Unit (Vitest)** — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
-- **Integration** — Route Handlers against a seeded test database.
+- **Unit (Vitest)** — *(219 tests passing as of milestone 5)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
+- **Integration** — Route Handlers invoked directly with the data layer (`lib/api/data`) stubbed, so status codes, shapes and pagination are covered without a live project.
 - **E2E (Playwright)** — the four PRD flows, plus a two-context test asserting real-time propagation between clients.
 
 ## 7. Repository Layout

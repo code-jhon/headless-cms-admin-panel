@@ -16,12 +16,17 @@ config({ path: ".env.local" });
 config({ path: ".env" });
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Publishable key preferred; legacy anon key accepted until it is retired.
+const key =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!url || !key) {
   console.error(
     "\n  Missing Supabase credentials.\n" +
-      "  Copy .env.example to .env.local and fill in both values, then re-run.\n",
+      "  Copy .env.example to .env.local, fill in NEXT_PUBLIC_SUPABASE_URL and\n" +
+      "  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, then re-run.\n" +
+      "  Walkthrough: docs/SUPABASE_SETUP.md\n",
   );
   process.exit(1);
 }
