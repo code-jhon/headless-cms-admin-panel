@@ -21,7 +21,7 @@ Built for the [Agile Monkeys Frontend Challenge 2026](https://frontend-challenge
 | Layer | Choice |
 |---|---|
 | App | Next.js 16 (App Router) · React 19 · TypeScript |
-| Styling | Tailwind CSS v4 (CSS-first theme, no config file) |
+| Styling | Tailwind CSS v4 (CSS-first theme, no config file) · light + dark |
 | Data | Supabase Postgres — `schemas`, `fields`, `entries` (JSONB) |
 | Real-time | Supabase Realtime (`postgres_changes`) |
 | Forms | Zod compiled at runtime from the schema; one renderer per field type |
@@ -120,6 +120,7 @@ lib/
   actions/           # server actions (all writes)
   api/               # read-API data access, serialization, params, errors
   realtime/          # subscription provider + pure sync policy
+  theme/             # theme preference: pure rules, store, pre-paint script
   schema/            # validation, diff engine, runtime Zod, display helpers
   migrations/        # conversion, dry run, write plan — schema evolution
 scripts/seed.ts      # idempotent seed
@@ -160,6 +161,15 @@ list without a refresh, and editing the *same* entry in both surfaces a
 conflict instead of letting the second save overwrite the first. Connection
 state is always visible in the sidebar; click it to refetch on demand.
 
+## Theme
+
+Light, dark, or follow the OS — the control sits in the sidebar footer. The
+choice persists, syncs across open tabs, and is applied before the first paint,
+so there is no flash on reload. Nothing was recoloured to add it: every colour
+in the app was already a semantic token, so the theme redefines variables
+rather than components. Details, including the two defects verification found:
+[`docs/THEME.md`](docs/THEME.md).
+
 ## Schema evolution
 
 Changing a field on a content type that already has entries opens a review
@@ -187,6 +197,7 @@ single-tenant demo posture, not a production one.
 - [`docs/MILESTONE_3_READ_API.md`](docs/MILESTONE_3_READ_API.md) — what milestone 3 built, and how it was verified
 - [`docs/MILESTONE_4_REALTIME.md`](docs/MILESTONE_4_REALTIME.md) — real-time sync and concurrent-edit handling
 - [`docs/MILESTONE_5_SCHEMA_EVOLUTION.md`](docs/MILESTONE_5_SCHEMA_EVOLUTION.md) — the review → preview → resolve → apply flow
+- [`docs/THEME.md`](docs/THEME.md) — the dark/light theme: token strategy, no-flash script, contrast results
 - [`docs/AI_WORKFLOW.md`](docs/AI_WORKFLOW.md) — how AI was used, and the nine defects it produced that verification caught
 - [`docs/PRD.md`](docs/PRD.md) — scope, requirements, acceptance criteria
 - [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md) — architecture, data model, milestones, risks

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { ConnectionIndicator } from "@/components/realtime/connection-indicator";
 import { currentMilestone } from "@/lib/milestones";
 import { cn } from "@/lib/utils";
@@ -59,11 +60,14 @@ export function Sidebar({ schemas, error }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="space-y-1.5 border-t border-border-subtle px-4 py-3">
+      <div className="space-y-2 border-t border-border-subtle px-4 py-3">
         <ConnectionIndicator />
-        <p className="px-1 text-[11px] leading-relaxed text-ink-muted">
-          Milestone {currentMilestone().id} — {currentMilestone().label}
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="px-1 text-[11px] leading-relaxed text-ink-muted">
+            Milestone {currentMilestone().id} — {currentMilestone().label}
+          </p>
+          <ThemeToggle />
+        </div>
       </div>
     </aside>
   );
