@@ -2,7 +2,7 @@
 
 **Project:** Headless CMS Admin Panel — Agile Monkeys Frontend Challenge 2026
 **Date:** 2026-08-15
-**Related:** [`PRD.md`](./PRD.md) · [`IMPLEMENTATION_STRATEGY.md`](./IMPLEMENTATION_STRATEGY.md) · the `MILESTONE_*.md` records
+**Related:** [`PRD.md`](./PRD.md) · [`IMPLEMENTATION_STRATEGY.md`](./IMPLEMENTATION_STRATEGY.md) · [`THEME.md`](./THEME.md) · the `MILESTONE_*.md` records
 
 The brief said: *"Please, use AI. We do too. Just own every line you send us."*
 
@@ -92,8 +92,8 @@ behaviour was confirmed rather than assumed.
 specific inputs where a plausible implementation is wrong. Those tests found
 three real bugs (below).
 
-**Current state:** 219 tests across 7 files, ~2,300 lines of test against
-~8,200 lines of source. Typecheck, lint and production build clean.
+**Current state:** 237 tests across 8 files, ~2,420 lines of test against
+~8,270 lines of source. Typecheck, lint and production build clean.
 
 ---
 
@@ -113,6 +113,13 @@ review by eye, and would have shipped.
 | 7 | Unreachable database returned **500 instead of 503** | Same | Tells a consumer "your request is broken" when the truth is "retry shortly" |
 | 8 | Typed Supabase client silently resolved to `never` | First `.insert()` failing to compile | Row types must be `type` aliases, not `interface`s, and every table needs `Relationships`. Reads typecheck fine either way, so it hides |
 | 9 | Two React correctness violations | ESLint | `setState` inside an effect body, and writing a ref during render |
+| 10 | Hovering the **selected** theme option made it look deselected | Reading computed styles after a click | `hover:` and `peer-checked:` have equal specificity, so source order won. A screenshot would not have shown it — the pointer sits where it clicked |
+| 11 | `matchMedia()` returns a **new object every call** | Scripted browser run: the OS switching to dark was ignored | The listener was attached to a throwaway `MediaQueryList` and the cleanup removed it from a *different* instance — collectable subscription, leaked handler |
+
+Defects 10 and 11 came from the theme work, added after milestone 5, and they
+repeat the pattern exactly: the structure was right the first time, and both
+failures sat at a seam — one in CSS precedence, one in an API that hands back a
+fresh object each time you ask.
 
 **The pattern:** the AI is reliable at structure and weak at edge semantics. It
 produces a well-organised date validator that accepts 31 February. Almost every
@@ -177,7 +184,7 @@ found by luck of sequencing, not by process.
 Nothing above requires taking my word for it:
 
 - **`docs/MILESTONE_*.md`** — each has a *Verification* section listing what was checked and what was **not**. Milestones 1–5 all name something left unverified.
-- **`npm test`** — 219 tests. The bug-specific ones carry comments naming the trap: search `lib/schema/__tests__/zod-builder.test.ts` for `2026-02-31`, and `lib/migrations/__tests__/transform.test.ts` for `2026-02-29` and `preview and apply agree`.
+- **`npm test`** — 237 tests. The bug-specific ones carry comments naming the trap: search `lib/schema/__tests__/zod-builder.test.ts` for `2026-02-31`, and `lib/migrations/__tests__/transform.test.ts` for `2026-02-29` and `preview and apply agree`.
 - **`docs/IMPLEMENTATION_STRATEGY.md`** — version-stamped; reversed decisions are visible in the milestone records that overrode them.
 - **Code comments explain *why*, not *what*.** Where a line exists because of a specific failure, the comment says which one — see `lib/migrations/transform.ts` on the date fallback, and `components/entry/entry-form.tsx` on the frozen concurrency token.
 
@@ -189,7 +196,7 @@ I used AI to write most of the lines and none of the decisions. It was fastest
 where the design was already settled and least trustworthy at edges — empty
 values, failure paths, second runs, concurrency. So the process was built around
 executing things rather than reading them: real Postgres, real HTTP, a real
-browser, a stubbed websocket server. That caught nine defects that all looked
+browser, a stubbed websocket server. That caught eleven defects that all looked
 fine on the page. The judgement calls — what to build, what to refuse, what
 "verified" means, and which four AI suggestions to throw away — stayed mine, and
 so does responsibility for every line in this repository.

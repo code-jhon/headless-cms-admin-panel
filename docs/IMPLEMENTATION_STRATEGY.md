@@ -1,7 +1,7 @@
 # Implementation Strategy — Headless CMS Admin Panel
 
 **Project:** `headless-cms-admin-panel`
-**Status:** v1.6 — milestones 0–5 delivered · **Date:** 2026-08-15
+**Status:** v1.7 — milestones 0–5 delivered, plus the light/dark theme · **Date:** 2026-08-16
 **Related doc:** [`PRD.md`](./PRD.md)
 
 ---
@@ -132,7 +132,7 @@ Milestones 1–3 make the product real; 4 makes it feel alive; 5 is where the en
 
 ## 6. Testing
 
-- **Unit (Vitest)** — *(219 tests passing as of milestone 5)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
+- **Unit (Vitest)** — *(237 tests passing)* — `transform.ts` conversion matrix (every type → every type, including failures), `buildZodSchema`, change classification. This is the highest-value test surface and the easiest to defend in the pairing session.
 - **Integration** — Route Handlers invoked directly with the data layer (`lib/api/data`) stubbed, so status codes, shapes and pagination are covered without a live project.
 - **E2E (Playwright)** — the four PRD flows, plus a two-context test asserting real-time propagation between clients.
 

@@ -1,25 +1,138 @@
 @import "tailwindcss";
 
+/*
+ * Theming
+ * =======
+ *
+ * Every colour in the app is a semantic token — `surface`, `ink`, `danger`
+ * and so on — and no component names a literal colour. Adding a dark theme
+ * therefore means redefining variables here, not editing components: the
+ * ~400 utility usages across the app did not change.
+ *
+ * The indirection is what makes it work. `@theme` maps each Tailwind colour
+ * to a plain custom property (`--color-ink: var(--ink)`), and the two blocks
+ * below define those properties per theme. Tailwind emits
+ * `color: var(--color-ink)`, which resolves through to whichever `--ink` is
+ * in scope, so the cascade does the switching at use time.
+ *
+ * Solid vs text
+ * -------------
+ * Two roles need different treatment. A colour behind *white text* (the
+ * primary and danger buttons) has to stay dark in both themes, while the
+ * same colour used *as text* on a dark background has to get lighter. Those
+ * are separate tokens — `--color-accent-solid` versus `--color-accent` —
+ * rather than one value that is wrong in one theme.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-surface: #ffffff;
-  --color-surface-muted: #f6f7f9;
-  --color-border-subtle: #e4e7ec;
-  --color-ink: #14161a;
-  --color-ink-muted: #5f6773;
-  --color-accent: #4f46e5;
-  --color-accent-soft: #eef2ff;
-  --color-ok: #0f7b56;
-  --color-ok-soft: #e7f6ef;
-  --color-warn: #9a5b00;
-  --color-warn-soft: #fdf3e3;
-  --color-danger: #b42318;
-  --color-danger-soft: #fdecea;
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+
+  /* Foreground roles — used as text, icons and borders. */
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  /* Solid fills that carry white text — dark in both themes. */
+  --color-accent-solid: var(--accent-solid);
+  --color-accent-solid-hover: var(--accent-solid-hover);
+  --color-accent-solid-muted: var(--accent-solid-muted);
+  --color-danger-solid: var(--danger-solid);
+  --color-danger-solid-hover: var(--danger-solid-hover);
+  --color-danger-solid-muted: var(--danger-solid-muted);
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    monospace;
+  --font-mono: ui-mono, ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, monospace;
 }
+
+/* ------------------------------------------------------------------ light */
+
+:root {
+  /* Tells the browser to render native controls — date pickers, select
+     menus, scrollbars — in the matching scheme. Without this the form
+     fields stay stubbornly light inside a dark page. */
+  color-scheme: light;
+
+  --surface: #ffffff;
+  --surface-muted: #f6f7f9;
+  --border-subtle: #e4e7ec;
+
+  --ink: #14161a;
+  --ink-muted: #5f6773;
+
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --ok: #0f7b56;
+  --ok-soft: #e7f6ef;
+  --warn: #9a5b00;
+  --warn-soft: #fdf3e3;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+
+  --accent-solid: #4f46e5;
+  --accent-solid-hover: #4338ca;
+  /* Disabled fills are darker than the usual pale tint: a disabled primary
+     button still reads "Saving…", and WCAG exempting inactive controls is
+     not a reason to make that unreadable. Both clear 3:1 against white. */
+  --accent-solid-muted: #8f8ad4;
+  --danger-solid: #b42318;
+  --danger-solid-hover: #911c12;
+  --danger-solid-muted: #cf7a72;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.06);
+}
+
+/* ------------------------------------------------------------------- dark */
+
+.dark {
+  color-scheme: dark;
+
+  /* The page sits below the cards, as in light mode — just inverted, so
+     elevation still reads the same way. */
+  --surface: #191c22;
+  --surface-muted: #101216;
+  --border-subtle: #2b3039;
+
+  --ink: #e8ebf0;
+  --ink-muted: #99a1ae;
+
+  /* Foreground hues lifted until they clear 4.5:1 on the dark surfaces.
+     The light-theme values sit between 2.4:1 and 3.3:1 here, which is why
+     they cannot simply be reused. */
+  --accent: #a5a0f7;
+  --accent-soft: #23253a;
+  --ok: #4ecf9f;
+  --ok-soft: #10281f;
+  --warn: #e8ad4c;
+  --warn-soft: #2a2113;
+  --danger: #f58a7e;
+  --danger-soft: #33191a;
+
+  /* Unchanged: these carry white text in both themes. */
+  --accent-solid: #4f46e5;
+  --accent-solid-hover: #5b52ea;
+  --accent-solid-muted: #3a3568;
+  --danger-solid: #b42318;
+  --danger-solid-hover: #c62a1e;
+  --danger-solid-muted: #5c2a25;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+/* ------------------------------------------------------------------- base */
 
 html,
 body {
@@ -31,6 +144,26 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Switching themes should read as a change of light, not a repaint.
+   No suppression is needed on load: the theme class is applied before first
+   paint (see `lib/theme/script.ts`), and CSS transitions do not run on an
+   element's first style resolution — so there is nothing to transition
+   *from*. Reduced motion still opts out. */
+body,
+body * {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body,
+  body * {
+    transition: none;
+  }
 }
 
 /* One-shot flash for the realtime "Updated" affordance. Keyed remounting

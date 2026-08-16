@@ -17,13 +17,20 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
+  /*
+   * These two carry white text, so they use the `-solid` tokens rather than
+   * `bg-accent` / `bg-danger`. The distinction matters in dark mode: the
+   * foreground tokens get *lighter* there to stay readable as text, which
+   * would leave white label text sitting on a pale fill. The solid tokens
+   * stay dark in both themes. See the header of `globals.css`.
+   */
   primary:
-    "bg-accent text-white hover:bg-indigo-700 disabled:bg-indigo-300 disabled:hover:bg-indigo-300",
+    "bg-accent-solid text-white hover:bg-accent-solid-hover disabled:bg-accent-solid-muted disabled:hover:bg-accent-solid-muted",
   secondary:
     "border border-border-subtle bg-surface text-ink hover:bg-surface-muted disabled:text-ink-muted",
   ghost: "text-ink-muted hover:bg-surface-muted hover:text-ink",
   danger:
-    "bg-danger text-white hover:bg-red-800 disabled:bg-red-300 disabled:hover:bg-red-300",
+    "bg-danger-solid text-white hover:bg-danger-solid-hover disabled:bg-danger-solid-muted disabled:hover:bg-danger-solid-muted",
 };
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
