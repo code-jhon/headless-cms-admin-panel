@@ -84,7 +84,7 @@ const CONVERSIONS: Record<FieldType, Partial<Record<FieldType, Convertibility>>>
     },
     date: {
       text: "lossless",
-      // Epoch millis are recoverable, but "1843-10-01" becoming -3986064000000
+      // Epoch millis are recoverable, but "1843-10-01" becoming -3984163200000
       // is not what an editor expects to see. Flag it for review rather than
       // applying it silently: the bytes survive, the meaning does not.
       number: "partial",

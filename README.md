@@ -190,6 +190,9 @@ single-tenant demo posture, not a production one.
 
 ## Documentation
 
+Start with the walkthrough — it explains *why* the code is shaped this way.
+
+- [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md) — **the async walkthrough**: architecture, data model, real-time, schema evolution, trade-offs, what I would improve next ([PDF](docs/WALKTHROUGH.pdf))
 - [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) — Supabase project setup, step by step
 - [`docs/MILESTONE_1_SCHEMA_BUILDER.md`](docs/MILESTONE_1_SCHEMA_BUILDER.md) — what milestone 1 built, and how it was verified
 - [`docs/MILESTONE_2_ENTRY_EDITOR.md`](docs/MILESTONE_2_ENTRY_EDITOR.md) — the generated entry editor
