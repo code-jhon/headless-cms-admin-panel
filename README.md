@@ -192,7 +192,8 @@ single-tenant demo posture, not a production one.
 
 Start with the walkthrough — it explains *why* the code is shaped this way.
 
-- [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md) — **the async walkthrough**: architecture, data model, real-time, schema evolution, trade-offs, what I would improve next ([PDF](docs/WALKTHROUGH.pdf))
+- [`docs/WALKTHROUGH_DECK.pdf`](docs/WALKTHROUGH_DECK.pdf) — **the async walkthrough, as 15 slides**: architecture, data model, real-time, schema evolution, trade-offs, how AI was used, what I would improve next ([source .pptx](docs/WALKTHROUGH_DECK.pptx))
+- [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md) — the same walkthrough written out, with every claim mapped to the file that proves it ([PDF](docs/WALKTHROUGH.pdf))
 - [`docs/SUPABASE_SETUP.md`](docs/SUPABASE_SETUP.md) — Supabase project setup, step by step
 - [`docs/MILESTONE_1_SCHEMA_BUILDER.md`](docs/MILESTONE_1_SCHEMA_BUILDER.md) — what milestone 1 built, and how it was verified
 - [`docs/MILESTONE_2_ENTRY_EDITOR.md`](docs/MILESTONE_2_ENTRY_EDITOR.md) — the generated entry editor
@@ -201,6 +202,6 @@ Start with the walkthrough — it explains *why* the code is shaped this way.
 - [`docs/MILESTONE_4_REALTIME.md`](docs/MILESTONE_4_REALTIME.md) — real-time sync and concurrent-edit handling
 - [`docs/MILESTONE_5_SCHEMA_EVOLUTION.md`](docs/MILESTONE_5_SCHEMA_EVOLUTION.md) — the review → preview → resolve → apply flow
 - [`docs/THEME.md`](docs/THEME.md) — the dark/light theme: token strategy, no-flash script, contrast results
-- [`docs/AI_WORKFLOW.md`](docs/AI_WORKFLOW.md) — how AI was used, and the nine defects it produced that verification caught
+- [`docs/AI_WORKFLOW.md`](docs/AI_WORKFLOW.md) — how AI was used, and the eleven defects it produced that verification caught ([deck](docs/AI_WORKFLOW_DECK.pdf) — the AI story on its own, in more depth than the walkthrough deck has room for)
 - [`docs/PRD.md`](docs/PRD.md) — scope, requirements, acceptance criteria
 - [`docs/IMPLEMENTATION_STRATEGY.md`](docs/IMPLEMENTATION_STRATEGY.md) — architecture, data model, milestones, risks
